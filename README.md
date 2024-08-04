@@ -55,3 +55,26 @@ As opposed to the original model, I chose to train the PEFT Model with my own tr
 ### Evaluate the fine-tuned model
 
 > Repeats the earlier evaluation process (same metric(s) and dataset) to compare the fine-tuned version to the original version of the model
+
+## Notes
+
+Validation Accuracy: 0.9279279279279279 with both GPT-2 original and GPT-2 Lora
+
+distilbert
+Validation Loss: 0.04222637224472589
+Validation Accuracy: 0.9819819819819819
+
+Same, but using HF Trainer:
+{'eval_loss': 0.09550724178552628, 'eval_accuracy': 0.9279279279279279, 'eval_runtime': 3.4617, 'eval_samples_per_second': 32.065, 'eval_steps_per_second': 32.065, 'epoch': 2.0}
+
+with fb model, insanely fast and almost at 1.0 accuracy.
+No chance to train it without Lora though, the original model won't fit into gpu memory.
+
+Validation Loss: 0.024231021698545237
+Validation Accuracy: 0.9937219730941704
+After 2 Epochs, training the full sms_spam dataset.
+
+The vanilla, untrained fb gives me this: {'eval_loss': 0.6766541600227356, 'eval_model_preparation_time': 0.0027, 'eval_accuracy': 0.6224215246636772, 'eval_runtime': 25.1539, 'eval_samples_per_second': 44.327, 'eval_steps_per_second': 44.327}
+
+Distilbert full, 2 epochs, full dataset:
+

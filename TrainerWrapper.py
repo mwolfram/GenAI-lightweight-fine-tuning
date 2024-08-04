@@ -10,10 +10,11 @@ from torch.optim import AdamW
 from torch.nn import CrossEntropyLoss
 
 from transformers import AutoModelForSequenceClassification
-from transformers import AutoModelForCausalLM
 
 from peft import LoraConfig
 from peft import get_peft_model
+from peft import AutoPeftModelForCausalLM
+from peft import AutoPeftModelForSequenceClassification
 
 from DatasetWrapper import sms_spam, imdb
 from TokenizerWrapper import TokenizerWrapper
@@ -87,8 +88,37 @@ class TrainerWrapper():
 
         return {"accuracy": accuracy, "eval_loss": eval_loss}
 
+    def evaluate_with_own_loop(self, data, model):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model = model.to(device)
+        loss_function = CrossEntropyLoss()
+        num_classes = 2
+        val_data_loader = DataLoader(data.get_tokenized_test_dataset(), batch_size=self.batch_size, shuffle=False)
+
+        model.eval()
+        total_eval_loss = 0
+        total_eval_accuracy = 0
+        for batch in val_data_loader:
+            input_ids = torch.tensor(batch['input_ids']).unsqueeze(0).to(device)
+            labels = torch.tensor(batch['labels']).unsqueeze(0).to(device)
+
+            with torch.no_grad():
+                outputs = model(input_ids=input_ids)
+                loss = loss_function(outputs.logits.view(-1, num_classes), labels.view(-1))
+                total_eval_loss += loss.item()
+
+                preds = torch.argmax(outputs.logits, dim=1)
+                total_eval_accuracy += (preds == labels).float().mean().item()
+
+        avg_val_loss = total_eval_loss / len(val_data_loader)
+        avg_val_accuracy = total_eval_accuracy / len(val_data_loader)
+        print(f"Validation Loss: {avg_val_loss}")
+        print(f"Validation Accuracy: {avg_val_accuracy}")
+
     def train_with_own_loop(self, data, lora=False):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model = self.get_lora_model(data) if lora else self.get_model(data)
+        model = model.to(device)
         optimizer = AdamW(model.parameters(), lr=self.learning_rate)
         loss_function = CrossEntropyLoss()
         num_classes = 2
@@ -100,8 +130,8 @@ class TrainerWrapper():
             model.train()
             num_batches = len(train_data_loader)
             for i, batch in enumerate(train_data_loader):
-                input_ids = torch.tensor(batch['input_ids']).unsqueeze(0)
-                labels = torch.tensor(batch['labels']).unsqueeze(0)
+                input_ids = torch.tensor(batch['input_ids']).unsqueeze(0).to(device)
+                labels = torch.tensor(batch['labels']).unsqueeze(0).to(device)
 
                 # Forward pass
                 outputs = model(input_ids=input_ids)
@@ -118,8 +148,8 @@ class TrainerWrapper():
             total_eval_loss = 0
             total_eval_accuracy = 0
             for batch in val_data_loader:
-                input_ids = torch.tensor(batch['input_ids']).unsqueeze(0)
-                labels = torch.tensor(batch['labels']).unsqueeze(0)
+                input_ids = torch.tensor(batch['input_ids']).unsqueeze(0).to(device)
+                labels = torch.tensor(batch['labels']).unsqueeze(0).to(device)
 
                 with torch.no_grad():
                     outputs = model(input_ids=input_ids)
@@ -133,6 +163,21 @@ class TrainerWrapper():
             avg_val_accuracy = total_eval_accuracy / len(val_data_loader)
             print(f"Validation Loss: {avg_val_loss}")
             print(f"Validation Accuracy: {avg_val_accuracy}")
+        
+        print("Training finished, saving model...")
+        save_path = "mwolfram/" + self.model_name + "-lora" if lora else "mwolfram/" + self.model_name
+        model.save_pretrained(save_path)
+        print("Model saved as", save_path)
+
+    def load_peft_model(self, path):
+        # Load the base model
+        # base_model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
+
+        # Load the PEFT model with adapter weights
+        config = LoraConfig(r=8, lora_alpha=16)
+        peft_model = AutoPeftModelForSequenceClassification.from_pretrained(path, config=config)
+
+        return peft_model
 
 if __name__ == "__main__":
     data = imdb().reduce_to_fraction(0.01)
@@ -154,7 +199,7 @@ if __name__ == "__main__":
 
 # For later:
 
-#lora_model.save_pretrained("mwolfram/gpt2-lora")
+#lora_model.save_pretrained("mwolfram/opt-350m-lora")
 
 # from peft import AutoPeftModelForCausalLM
 # from transformers import OPTForCausalLM

@@ -6,10 +6,18 @@ from TokenizerWrapper import TokenizerWrapper
 from DatasetWrapper import sms_spam, imdb
 from TrainerWrapper import TrainerWrapper
 
+import random
+import numpy as np
+import torch
+
+random.seed(42)
+np.random.seed(42)
+torch.manual_seed(42)
+
 # tokenizer
-#TOKENIZER_NAME = "facebook/opt-350m"
+TOKENIZER_NAME = "facebook/opt-350m"
 #TOKENIZER_NAME = "distilbert-base-uncased"
-TOKENIZER_NAME = "gpt2"
+#TOKENIZER_NAME = "gpt2"
 
 # model is the same as tokenizer
 MODEL_NAME = TOKENIZER_NAME
@@ -25,11 +33,17 @@ def train():
 
     tokenizer_wrapper.tokenize(data)
     
-    # trainer_wrapper.init_trainer(data, tokenizer_wrapper.get_tokenizer(), lora=False)
-    # trainer_wrapper.train()
-    # trainer_wrapper.evaluate()
+    #trainer_wrapper.init_trainer(data, tokenizer_wrapper.get_tokenizer(), lora=False)
+    #trainer_wrapper.train()
+    #trainer_wrapper.evaluate()
 
-    trainer_wrapper.train_with_own_loop(data, lora=True)
+    #trainer_wrapper.train_with_own_loop(data, lora=True)
+
+    model = trainer_wrapper.load_peft_model("mwolfram/facebook/opt-350m-lora")
+    #print(model)
+    #from transformers import AutoModelForSequenceClassification
+    #model = AutoModelForSequenceClassification.from_pretrained("models/20240804_2028/mwolfram/distilbert-base-uncased")
+    trainer_wrapper.evaluate_with_own_loop(data, model)
 
 
 if __name__ == "__main__":
