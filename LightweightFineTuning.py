@@ -33,6 +33,8 @@ def train():
 
     tokenizer_wrapper.tokenize(data)
     
+    # Uncomment blocks individually:
+
     # Evaluate initial model
     #trainer_wrapper.init_trainer(data, tokenizer_wrapper.get_tokenizer(), lora=False)
     #trainer_wrapper.evaluate()
@@ -41,9 +43,9 @@ def train():
     #trainer_wrapper.train_with_own_loop(data, lora=True)
 
     # Evaluate saved Lora model
-    model_path = "mwolfram/facebook/opt-350m-lora"
-    model = trainer_wrapper.load_peft_model(model_path)
-    trainer_wrapper.evaluate_with_own_loop(data, model)
+    #model_path = "mwolfram/facebook/opt-350m-lora"
+    #model = trainer_wrapper.load_peft_model(model_path)
+    #trainer_wrapper.evaluate_with_own_loop(data, model)
 
     # Generate text from saved model
     #trainer_wrapper.generate_from_saved_model(tokenizer_wrapper.get_tokenizer(), model_path)
