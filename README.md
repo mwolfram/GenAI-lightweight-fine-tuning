@@ -36,6 +36,13 @@ When I evaluated the model with the untrained classification head, I got these r
 {'eval_loss': 1.6337233781814575, 'eval_model_preparation_time': 0.0026, 'eval_accuracy': 0.2116591928251121, 'eval_runtime': 25.4441, 'eval_samples_per_second': 43.822, 'eval_steps_per_second': 43.822}
 '''
 
+I also evaluated it with the self-written evaluation process in `TrainerWrapper::evaluate_with_own_loop` and got the same results:
+
+'''
+Validation Loss: 1.6337234101188265
+Validation Accuracy: 0.2116591928251121
+'''
+
 I couldn't even train the full model, as my GPU memory would be insufficient for that.
 
 ### Create a PEFT model

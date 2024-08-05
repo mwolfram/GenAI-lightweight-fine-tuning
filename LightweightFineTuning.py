@@ -35,9 +35,12 @@ def train():
     
     # Uncomment blocks individually:
 
-    # Evaluate initial model
+    # Evaluate initial model with HF
     #trainer_wrapper.init_trainer(data, tokenizer_wrapper.get_tokenizer(), lora=False)
     #trainer_wrapper.evaluate()
+
+    # Evaluate with own metrics
+    trainer_wrapper.evaluate_with_own_loop(data, trainer_wrapper.get_model(data))
 
     # Train Lora model
     #trainer_wrapper.train_with_own_loop(data, lora=True)
