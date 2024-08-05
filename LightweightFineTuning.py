@@ -39,11 +39,11 @@ def train():
 
     #trainer_wrapper.train_with_own_loop(data, lora=True)
 
-    model = trainer_wrapper.load_peft_model("mwolfram/facebook/opt-350m-lora")
-    #print(model)
-    #from transformers import AutoModelForSequenceClassification
-    #model = AutoModelForSequenceClassification.from_pretrained("models/20240804_2028/mwolfram/distilbert-base-uncased")
-    trainer_wrapper.evaluate_with_own_loop(data, model)
+    model_path = "mwolfram/facebook/opt-350m-lora"
+    #model = trainer_wrapper.load_peft_model(model_path)
+    #trainer_wrapper.evaluate_with_own_loop(data, model)
+
+    trainer_wrapper.generate_from_saved_model(tokenizer_wrapper.get_tokenizer(), model_path)
 
 
 if __name__ == "__main__":

@@ -10,14 +10,11 @@ from torch.optim import AdamW
 from torch.nn import CrossEntropyLoss
 
 from transformers import AutoModelForSequenceClassification
+from transformers import OPTForCausalLM
 
 from peft import LoraConfig
 from peft import get_peft_model
-from peft import AutoPeftModelForCausalLM
 from peft import AutoPeftModelForSequenceClassification
-
-from DatasetWrapper import sms_spam, imdb
-from TokenizerWrapper import TokenizerWrapper
 
 class TrainerWrapper():
         
@@ -26,6 +23,8 @@ class TrainerWrapper():
         self.learning_rate = 2e-5
         self.batch_size = 1
         self.epochs = 2
+        self.lora_rate = 8
+        self.lora_alpha = 16
 
     def evaluate(self):
         evaluation_results = self.trainer.evaluate()
@@ -72,7 +71,7 @@ class TrainerWrapper():
 
     def get_lora_model(self, data):
         model = self.get_model(data)
-        config = LoraConfig(r=8, lora_alpha=16)
+        config = LoraConfig(r=self.lora_rate, lora_alpha=self.lora_alpha)
         lora_model = get_peft_model(model, config)
         return lora_model
 
@@ -170,44 +169,12 @@ class TrainerWrapper():
         print("Model saved as", save_path)
 
     def load_peft_model(self, path):
-        # Load the base model
-        # base_model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
-
-        # Load the PEFT model with adapter weights
         config = LoraConfig(r=8, lora_alpha=16)
         peft_model = AutoPeftModelForSequenceClassification.from_pretrained(path, config=config)
-
         return peft_model
 
-if __name__ == "__main__":
-    data = imdb().reduce_to_fraction(0.01)
-    tokenizer_wrapper = TokenizerWrapper("gpt2")
-    trainer_wrapper = TrainerWrapper("gpt2")
-    
-    lora_model = trainer_wrapper.get_lora_model(data)
-    print(lora_model)
-
-    #trainer_wrapper.init_trainer(data, tokenizer_wrapper.get_tokenizer())
-    #trainer_wrapper.train()
-    #trainer_wrapper.evaluate()
-
-
-''' The alternative way of training:
-
-    
-'''
-
-# For later:
-
-#lora_model.save_pretrained("mwolfram/opt-350m-lora")
-
-# from peft import AutoPeftModelForCausalLM
-# from transformers import OPTForCausalLM
-
-# #lora_model = AutoPeftModelForCausalLM.from_pretrained("mwolfram/opt-350m-lora")
-
-# lora_model = OPTForCausalLM.from_pretrained("mwolfram/opt-350m-lora")
-
-# input_ids = tokenizer.encode('Hello, I am a', return_tensors='pt')
-# generated_text = lora_model.generate(input_ids, max_length=50)
-# print(tokenizer.decode(generated_text[0]))
+    def generate_from_saved_model(self, tokenizer, model_path):
+        model = OPTForCausalLM.from_pretrained(model_path)
+        input_ids = tokenizer.encode('Hello, I am a', return_tensors='pt')
+        generated_text = model.generate(input_ids, max_length=50)
+        print(tokenizer.decode(generated_text[0]))
