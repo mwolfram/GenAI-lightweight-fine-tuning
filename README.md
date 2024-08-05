@@ -32,16 +32,16 @@ I am using the HuggingFace Trainer for evaluation. This is invoked in the `Train
 I chose to go ahead with the `facebook/opt-350` model.
 When I evaluated the model with the untrained classification head, I got these results:
 
-'''
+```
 {'eval_loss': 1.6337233781814575, 'eval_model_preparation_time': 0.0026, 'eval_accuracy': 0.2116591928251121, 'eval_runtime': 25.4441, 'eval_samples_per_second': 43.822, 'eval_steps_per_second': 43.822}
-'''
+```
 
 I also evaluated it with the self-written evaluation process in `TrainerWrapper::evaluate_with_own_loop` and got the same results:
 
-'''
+```
 Validation Loss: 1.6337234101188265
 Validation Accuracy: 0.2116591928251121
-'''
+```
 
 I couldn't even train the full model, as my GPU memory would be insufficient for that.
 
@@ -62,18 +62,18 @@ The Lora version of `facebook/opt-350` worked insanely fast in training, I also 
 I ended up getting the following results:
 
 Lora version of `facebook/opt-350`
-'''
+```
 Validation Loss: 0.024231021698545237
 Validation Accuracy: 0.9937219730941704
-'''
+```
 
 Given the efficient training phase, this is a really good result. I compared this to training the full distilbert-base-uncased in a similar way, which took longer and gave me a slightly worse performance:
 
 Comparison with full `distilbert-base-uncased`
-'''
+```
 Validation Loss: 0.04222637224472589
 Validation Accuracy: 0.9819819819819819
-'''
+```
 
 ### Save the PEFT model
 
